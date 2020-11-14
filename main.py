@@ -7,10 +7,10 @@ import scheduling
 
 
 class ScheduleVizWindow(QWidget):
-    def __init__(self, time_blocks: [scheduling.TimeBlock], process_exec_stats: [scheduling.ProcessExecStats]):
+    def __init__(self, time_blocks: [scheduling.TimeBlock], process_exec_stats: [scheduling.ProcessExecInfo]):
         super().__init__()
         self.time_blocks: [scheduling.TimeBlock] = time_blocks
-        self.process_exec_stats: [scheduling.ProcessExecStats] = process_exec_stats
+        self.process_exec_stats: [scheduling.ProcessExecInfo] = process_exec_stats
         self.init_ui()
 
     def init_ui(self):
@@ -50,11 +50,11 @@ class ScheduleVizWindow(QWidget):
 
 if __name__ == '__main__':
     process_info_list = [
-        scheduling.ProcessInfo("J0", 11, 0, QColor(200, 0, 0)),
-        scheduling.ProcessInfo("J1", 7, 3, QColor(0, 200, 0)),
-        scheduling.ProcessInfo("J2", 21, 14, QColor(0, 0, 200)),
-        scheduling.ProcessInfo("J3", 5, 19, QColor(0, 200, 200)),
-        scheduling.ProcessInfo("J4", 11, 23, QColor(200, 0, 200))
+        scheduling.Process("J0", 11, 0, QColor(200, 0, 0)),
+        scheduling.Process("J1", 7, 3, QColor(0, 200, 0)),
+        scheduling.Process("J2", 21, 14, QColor(0, 0, 200)),
+        scheduling.Process("J3", 5, 19, QColor(0, 200, 200)),
+        scheduling.Process("J4", 11, 23, QColor(200, 0, 200))
                          ]
 
     cpu = scheduling.Processor(6, 1)

@@ -2,7 +2,7 @@ from itertools import count
 from PyQt5.QtGui import QColor
 
 
-class ProcessInfo:
+class Process:
     new_id = count(0)
 
     def __init__(self, name: str, cpu_burst: int, queue_arrival_time: int, color: QColor):
@@ -13,8 +13,11 @@ class ProcessInfo:
         self.uid = next(self.new_id)
 
 
-class ProcessExecStats:
-    def __init__(self, process: ProcessInfo):
+class ProcessExecInfo:
+    """
+    Information about a finished process
+    """
+    def __init__(self, process: Process):
         self.process = process
         self.start_time: int = -1  # ms passed till the process gets cpu time for the first time
         self.turnaround_time: int = -1
@@ -24,9 +27,12 @@ class ProcessExecStats:
 
 
 class TimeBlock:
-    def __init__(self, process: ProcessInfo, process_name: str, duration: int):
+    """
+    Information about a CPU time slice.
+    """
+    def __init__(self, process: Process, process_name: str, duration: int):
         self.duration: int = duration
-        self.process: ProcessInfo = process
+        self.process: Process = process
         self.process_name: str = process_name
 
     def __str__(self):
@@ -43,17 +49,17 @@ class Processor:
         self.time_blocks: [TimeBlock] = []
         self.current_process = None
 
-    def exec(self, scheduling, process_info_list: [ProcessInfo]) -> ([TimeBlock], [ProcessExecStats]):
+    def exec(self, scheduling, process_info_list: [Process]) -> ([TimeBlock], [ProcessExecInfo]):
         """
         :param scheduling: Scheduling algorithm
         :param process_info_list: Processes that require cpu time
         :return: (time blocks of cpu usage, execution information about processes)
         """
-        processes_stats: [ProcessExecStats] = scheduling(process_info_list, self)
+        processes_stats: [ProcessExecInfo] = scheduling(process_info_list, self)
         self.join_time_blocks()
         return self.time_blocks, processes_stats
 
-    def slice_exec(self, p: ProcessInfo) -> (ProcessInfo, int):
+    def slice_exec(self, p: Process) -> (Process, int):
         """
         :param p: Process to execute
         :return: (changed process p, time elapsed)
@@ -88,14 +94,20 @@ class Processor:
                 i += 1
 
 
-def fcfs(process_info_list: [ProcessInfo], cpu: Processor) -> [ProcessExecStats]:
-    processes_stats: [ProcessExecStats] = []
+def fcfs(process_info_list: [Process], cpu: Processor) -> [ProcessExecInfo]:
+    """
+    First Come First Serve scheduling
+    :param process_info_list:
+    :param cpu:
+    :return:
+    """
+    processes_stats: [ProcessExecInfo] = []
     for p in process_info_list:
-        processes_stats.append(ProcessExecStats(p))
+        processes_stats.append(ProcessExecInfo(p))
 
     timer = 0
     while process_info_list:
-        pes: ProcessExecStats = [x for x in processes_stats if x.process.uid == process_info_list[0].uid][0]
+        pes: ProcessExecInfo = [x for x in processes_stats if x.process.uid == process_info_list[0].uid][0]
         if process_info_list[0].queue_arrival_time <= timer:
             if pes.start_time == -1:
                 pes.start_time = timer + 1  # +1 because of the context switch
@@ -111,16 +123,22 @@ def fcfs(process_info_list: [ProcessInfo], cpu: Processor) -> [ProcessExecStats]
     return processes_stats
 
 
-def rr(process_info_list: [ProcessInfo], cpu: Processor) -> [ProcessExecStats]:
-    processes_stats: [ProcessExecStats] = []
+def rr(process_info_list: [Process], cpu: Processor) -> [ProcessExecInfo]:
+    """
+    Round Robing scheduling
+    :param process_info_list:
+    :param cpu:
+    :return:
+    """
+    processes_stats: [ProcessExecInfo] = []
     for p in process_info_list:
-        processes_stats.append(ProcessExecStats(p))
+        processes_stats.append(ProcessExecInfo(p))
 
     timer = 0
     while process_info_list:
         changed = False
         for p in process_info_list:
-            pes: ProcessExecStats = [x for x in processes_stats if x.process.uid == p.uid][0]
+            pes: ProcessExecInfo = [x for x in processes_stats if x.process.uid == p.uid][0]
             if p.queue_arrival_time <= timer:
                 if pes.start_time == -1:
                     pes.start_time = timer + 1  # +1 because of the context switch
@@ -139,15 +157,21 @@ def rr(process_info_list: [ProcessInfo], cpu: Processor) -> [ProcessExecStats]:
     return processes_stats
 
 
-def sjf(process_info_list: [ProcessInfo], cpu: Processor) -> [ProcessExecStats]:
-    processes_stats: [ProcessExecStats] = []
+def sjf(process_info_list: [Process], cpu: Processor) -> [ProcessExecInfo]:
+    """
+    Shortest Job First scheduling
+    :param process_info_list:
+    :param cpu:
+    :return:
+    """
+    processes_stats: [ProcessExecInfo] = []
     for p in process_info_list:
-        processes_stats.append(ProcessExecStats(p))
+        processes_stats.append(ProcessExecInfo(p))
 
     timer = 0
     while process_info_list:
         # find processes that have arrived
-        available_processes: [ProcessInfo] = []
+        available_processes: [Process] = []
         for p in process_info_list:
             if p.queue_arrival_time <= timer:
                 available_processes.append(p)
@@ -156,12 +180,12 @@ def sjf(process_info_list: [ProcessInfo], cpu: Processor) -> [ProcessExecStats]:
             timer += time_elapsed
             continue
         # find the process with the smallest cpu burst
-        min_process: ProcessInfo = available_processes[0]
+        min_process: Process = available_processes[0]
         for p in available_processes:
             if p.cpu_burst < min_process.cpu_burst:
                 min_process = p
         # execute that process
-        pes: ProcessExecStats = [x for x in processes_stats if x.process.uid == min_process.uid][0]
+        pes: ProcessExecInfo = [x for x in processes_stats if x.process.uid == min_process.uid][0]
         if pes.start_time == -1:
             pes.start_time = timer + 1  # +1 because of the context switch
         min_process, time_elapsed = cpu.slice_exec(min_process)
