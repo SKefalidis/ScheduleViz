@@ -3,14 +3,14 @@ import copy
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel
 from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QBrush
 from PyQt5.QtCore import Qt, QRect
-import fcfs
+import scheduling
 
 
 class ScheduleVizWindow(QWidget):
-    def __init__(self, time_blocks: [fcfs.TimeBlock], process_exec_stats: [fcfs.ProcessExecStats]):
+    def __init__(self, time_blocks: [scheduling.TimeBlock], process_exec_stats: [scheduling.ProcessExecStats]):
         super().__init__()
-        self.time_blocks: [fcfs.TimeBlock] = time_blocks
-        self.process_exec_stats: [fcfs.ProcessExecStats] = process_exec_stats
+        self.time_blocks: [scheduling.TimeBlock] = time_blocks
+        self.process_exec_stats: [scheduling.ProcessExecStats] = process_exec_stats
         self.init_ui()
 
     def init_ui(self):
@@ -50,17 +50,17 @@ class ScheduleVizWindow(QWidget):
 
 if __name__ == '__main__':
     process_info_list = [
-        fcfs.ProcessInfo("J0", 11, 0, QColor(200, 0, 0)),
-        fcfs.ProcessInfo("J1", 7, 3, QColor(0, 200, 0)),
-        fcfs.ProcessInfo("J2", 21, 14, QColor(0, 0, 200)),
-        fcfs.ProcessInfo("J3", 5, 19, QColor(0, 200, 200)),
-        fcfs.ProcessInfo("J4", 11, 23, QColor(200, 0, 200))
+        scheduling.ProcessInfo("J0", 11, 0, QColor(200, 0, 0)),
+        scheduling.ProcessInfo("J1", 7, 3, QColor(0, 200, 0)),
+        scheduling.ProcessInfo("J2", 21, 14, QColor(0, 0, 200)),
+        scheduling.ProcessInfo("J3", 5, 19, QColor(0, 200, 200)),
+        scheduling.ProcessInfo("J4", 11, 23, QColor(200, 0, 200))
                          ]
 
-    cpu = fcfs.Processor(6, 1)
+    cpu = scheduling.Processor(6, 1)
     # time_blocks, process_exec_stats = cpu.exec(fcfs.fcfs, copy.deepcopy(process_info_list))
     # time_blocks, process_exec_stats = cpu.exec(fcfs.rr, copy.deepcopy(process_info_list))
-    time_blocks, process_exec_stats = cpu.exec(fcfs.sjf, copy.deepcopy(process_info_list))
+    time_blocks, process_exec_stats = cpu.exec(scheduling.sjf, copy.deepcopy(process_info_list))
 
     app = QApplication(sys.argv)
     w = ScheduleVizWindow(time_blocks, process_exec_stats)
